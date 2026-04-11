@@ -1,5 +1,48 @@
+# macOS
 .DS_Store
+
+# JetBrains / PyCharm
 .idea/
+*.iml
+
+# Python virtual environments
 .venv/
+venv/
+env/
+ENV/
+
+# Python cache and bytecode
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
+
+# Packaging / build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Test / coverage / type-checker caches
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.hypothesis/
+
+# Logs
+*.log
+
+# Local environment files
+.env
+.env.*
+
+# Local databases and runtime artifacts
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
