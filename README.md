@@ -1,15 +1,23 @@
-# LeveqoProject
+# expenses-
 
-Console app for tracking personal expenses.
+Это небольшая консольная программа для учета личных расходов.
+В ней можно будет добавлять категории, записывать траты и смотреть общую сумму расходов.
 
-Entry point:
-- `python expenses.py`
+Я делаю этот проект на Python как учебную работу.
 
-Storage format:
-- `expenses.json`
+Чтобы запустить программу, нужно выполнить:
 
-Planned commands:
-- `python expenses.py add <amount> <category> <name>`
-- `python expenses.py add-category <category>`
-- `python expenses.py list [category]`
-- `python expenses.py total [category]`
+```bash
+python expenses.py
+```
+
+Пока в программе есть такие команды:
+
+```bash
+python expenses.py add-category <категория>
+python expenses.py add <стоимость> <категория> <название>
+python expenses.py list [категория]
+python expenses.py total [категория]
+```
+
+Данные сохраняются в файл `expenses.json`.
