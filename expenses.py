@@ -39,6 +39,11 @@ def save_data(data: dict[str, list]) -> None:
         file.write("\n")
 
 
+def category_exists(category: str) -> bool:
+    data = load_data()
+    return category in data["categories"]
+
+
 def add_category(category: str) -> int:
     normalized_category = category.strip()
     if not normalized_category:
@@ -55,6 +60,30 @@ def add_category(category: str) -> int:
     save_data(data)
     print(f"Категория '{normalized_category}' добавлена.")
     return 0
+
+
+def validate_add_command(amount: str, category: str, name: str) -> int:
+    normalized_category = category.strip()
+    normalized_name = name.strip()
+
+    if not amount.strip():
+        print("Стоимость не может быть пустой.")
+        return 1
+
+    if not normalized_category:
+        print("Название категории не может быть пустым.")
+        return 1
+
+    if not normalized_name:
+        print("Название расхода не может быть пустым.")
+        return 1
+
+    if not category_exists(normalized_category):
+        print(f"Категория '{normalized_category}' не найдена.")
+        print("Сначала добавьте ее командой add-category.")
+        return 1
+
+    return not_implemented("add")
 
 
 def not_implemented(command: str) -> int:
@@ -88,7 +117,7 @@ def main(argv: list[str] | None = None) -> int:
             print("Для команды add нужно указать стоимость, категорию и название.")
             print_usage()
             return 1
-        return not_implemented(command)
+        return validate_add_command(args[1], args[2], args[3])
 
     if command == "list":
         if len(args) > 2:
