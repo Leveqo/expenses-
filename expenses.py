@@ -4,7 +4,6 @@ import sys
 
 DATA_FILE = "expenses.json"
 
-
 def load_data():
     try:
         with open(DATA_FILE, "r", encoding="utf-8") as file:
@@ -22,11 +21,9 @@ def load_data():
 
     return data
 
-
 def save_data(data):
     with open(DATA_FILE, "w", encoding="utf-8") as file:
         json.dump(data, file, ensure_ascii=False, indent=2)
-
 
 def show_help():
     print("Использование:")
@@ -34,7 +31,6 @@ def show_help():
     print("  python expenses.py add-category <категория>")
     print("  python expenses.py list [категория]")
     print("  python expenses.py total [категория]")
-
 
 def add_category(category):
     data = load_data()
@@ -86,7 +82,6 @@ def add_expense(amount_text, category, name):
     save_data(data)
     print("Расход добавлен.")
 
-
 def print_expense(number, expense):
     amount = expense["amount"]
     if amount == int(amount):
@@ -102,7 +97,6 @@ def print_expense(number, expense):
         + expense["category"]
         + ")"
     )
-
 
 def show_expenses(category):
     data = load_data()
@@ -121,7 +115,6 @@ def show_expenses(category):
 
     if not found:
         print("Расходов пока нет.")
-
 
 def show_total(category):
     data = load_data()
@@ -142,7 +135,6 @@ def show_total(category):
         print("Общая сумма расходов:", total)
     else:
         print("Сумма расходов в категории", category + ":", total)
-
 
 def main():
     args = sys.argv[1:]
@@ -184,6 +176,5 @@ def main():
     else:
         print("Неизвестная команда.")
         show_help()
-
 
 main()
