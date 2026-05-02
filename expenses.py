@@ -1,15 +1,34 @@
-from __future__ import annotations
-
 import json
 import sys
-from pathlib import Path
 
 
-DATA_FILE = Path(__file__).with_name("expenses.json")
-DEFAULT_DATA = {"categories": [], "expenses": []}
+DATA_FILE = "expenses.json"
 
 
-def print_usage() -> None:
+def load_data():
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        data = {"categories": [], "expenses": []}
+    except json.JSONDecodeError:
+        print("Ошибка: файл с данными поврежден.")
+        data = {"categories": [], "expenses": []}
+
+    if "categories" not in data:
+        data["categories"] = []
+    if "expenses" not in data:
+        data["expenses"] = []
+
+    return data
+
+
+def save_data(data):
+    with open(DATA_FILE, "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=2)
+
+
+def show_help():
     print("Использование:")
     print("  python expenses.py add <стоимость> <категория> <название>")
     print("  python expenses.py add-category <категория>")
@@ -17,126 +36,154 @@ def print_usage() -> None:
     print("  python expenses.py total [категория]")
 
 
-def load_data() -> dict[str, list]:
-    if not DATA_FILE.exists():
-        save_data(DEFAULT_DATA)
-        return DEFAULT_DATA.copy()
-
-    with DATA_FILE.open("r", encoding="utf-8") as file:
-        data = json.load(file)
-
-    categories = data.get("categories", [])
-    expenses = data.get("expenses", [])
-    return {
-        "categories": categories,
-        "expenses": expenses,
-    }
-
-
-def save_data(data: dict[str, list]) -> None:
-    with DATA_FILE.open("w", encoding="utf-8") as file:
-        json.dump(data, file, ensure_ascii=False, indent=2)
-        file.write("\n")
-
-
-def category_exists(category: str) -> bool:
+def add_category(category):
     data = load_data()
-    return category in data["categories"]
+    category = category.strip()
 
-
-def add_category(category: str) -> int:
-    normalized_category = category.strip()
-    if not normalized_category:
+    if category == "":
         print("Название категории не может быть пустым.")
-        return 1
+        return
 
-    data = load_data()
-    categories = data["categories"]
-    if normalized_category in categories:
-        print(f"Категория '{normalized_category}' уже существует.")
-        return 1
+    if category in data["categories"]:
+        print("Такая категория уже есть.")
+        return
 
-    categories.append(normalized_category)
+    data["categories"].append(category)
     save_data(data)
-    print(f"Категория '{normalized_category}' добавлена.")
-    return 0
+    print("Категория добавлена.")
 
 
-def validate_add_command(amount: str, category: str, name: str) -> int:
-    normalized_category = category.strip()
-    normalized_name = name.strip()
+def add_expense(amount_text, category, name):
+    data = load_data()
+    amount_text = amount_text.replace(",", ".").strip()
+    category = category.strip()
+    name = name.strip()
 
-    if not amount.strip():
-        print("Стоимость не может быть пустой.")
-        return 1
+    if amount_text == "" or category == "" or name == "":
+        print("Все поля должны быть заполнены.")
+        return
 
-    if not normalized_category:
-        print("Название категории не может быть пустым.")
-        return 1
+    if category not in data["categories"]:
+        print("Такой категории нет.")
+        return
 
-    if not normalized_name:
-        print("Название расхода не может быть пустым.")
-        return 1
+    try:
+        amount = float(amount_text)
+    except ValueError:
+        print("Стоимость должна быть числом.")
+        return
 
-    if not category_exists(normalized_category):
-        print(f"Категория '{normalized_category}' не найдена.")
-        print("Сначала добавьте ее командой add-category.")
-        return 1
+    if amount <= 0:
+        print("Стоимость должна быть больше нуля.")
+        return
 
-    return not_implemented("add")
+    expense = {
+        "amount": amount,
+        "category": category,
+        "name": name,
+    }
+    data["expenses"].append(expense)
+    save_data(data)
+    print("Расход добавлен.")
 
 
-def not_implemented(command: str) -> int:
-    print(f"Команда '{command}' пока не реализована.")
-    print(f"Выбранный формат хранения: JSON ({DATA_FILE.name})")
-    return 0
+def print_expense(number, expense):
+    amount = expense["amount"]
+    if amount == int(amount):
+        amount = int(amount)
+
+    print(
+        str(number)
+        + ". "
+        + expense["name"]
+        + " - "
+        + str(amount)
+        + " ("
+        + expense["category"]
+        + ")"
+    )
 
 
-def main(argv: list[str] | None = None) -> int:
-    args = sys.argv[1:] if argv is None else argv
+def show_expenses(category):
+    data = load_data()
+    found = False
+    number = 1
 
-    if not args:
-        print_usage()
-        return 1
+    if category != "" and category not in data["categories"]:
+        print("Такой категории нет.")
+        return
+
+    for expense in data["expenses"]:
+        if category == "" or expense["category"] == category:
+            print_expense(number, expense)
+            found = True
+            number += 1
+
+    if not found:
+        print("Расходов пока нет.")
+
+
+def show_total(category):
+    data = load_data()
+    total = 0
+
+    if category != "" and category not in data["categories"]:
+        print("Такой категории нет.")
+        return
+
+    for expense in data["expenses"]:
+        if category == "" or expense["category"] == category:
+            total += expense["amount"]
+
+    if total == int(total):
+        total = int(total)
+
+    if category == "":
+        print("Общая сумма расходов:", total)
+    else:
+        print("Сумма расходов в категории", category + ":", total)
+
+
+def main():
+    args = sys.argv[1:]
+
+    if len(args) == 0:
+        show_help()
+        return
 
     command = args[0]
 
-    if command in {"-h", "--help"}:
-        print_usage()
-        return 0
-
     if command == "add-category":
         if len(args) != 2:
-            print("Для команды add-category нужно указать одну категорию.")
-            print_usage()
-            return 1
-        return add_category(args[1])
-
-    if command == "add":
+            print("Нужно указать категорию.")
+            show_help()
+            return
+        add_category(args[1])
+    elif command == "add":
         if len(args) != 4:
-            print("Для команды add нужно указать стоимость, категорию и название.")
-            print_usage()
-            return 1
-        return validate_add_command(args[1], args[2], args[3])
-
-    if command == "list":
-        if len(args) > 2:
+            print("Нужно указать стоимость, категорию и название.")
+            show_help()
+            return
+        add_expense(args[1], args[2], args[3])
+    elif command == "list":
+        if len(args) == 1:
+            show_expenses("")
+        elif len(args) == 2:
+            show_expenses(args[1])
+        else:
             print("У команды list может быть только одна категория.")
-            print_usage()
-            return 1
-        return not_implemented(command)
-
-    if command == "total":
-        if len(args) > 2:
+            show_help()
+    elif command == "total":
+        if len(args) == 1:
+            show_total("")
+        elif len(args) == 2:
+            show_total(args[1])
+        else:
             print("У команды total может быть только одна категория.")
-            print_usage()
-            return 1
-        return not_implemented(command)
-
-    print(f"Неизвестная команда: {command}")
-    print_usage()
-    return 1
+            show_help()
+    else:
+        print("Неизвестная команда.")
+        show_help()
 
 
-if __name__ == "__main__":
-    raise SystemExit(main())
+main()

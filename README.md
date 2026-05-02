@@ -11,13 +11,23 @@
 python expenses.py
 ```
 
-Пока в программе есть такие команды:
+В программе можно:
+
+- добавить категорию;
+- добавить расход;
+- посмотреть список расходов;
+- посмотреть общую сумму расходов;
+- посмотреть расходы или сумму по одной категории.
+
+Примеры команд:
 
 ```bash
-python expenses.py add-category <категория>
-python expenses.py add <стоимость> <категория> <название>
-python expenses.py list [категория]
-python expenses.py total [категория]
+python expenses.py add-category еда
+python expenses.py add 250 еда обед
+python expenses.py list
+python expenses.py list еда
+python expenses.py total
+python expenses.py total еда
 ```
 
 Данные сохраняются в файл `expenses.json`.
